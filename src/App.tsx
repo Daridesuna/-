@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: '/tasks', label: 'タスク' },
   { to: '/bosses', label: 'ボス出現率' },
   { to: '/status', label: 'サーバー状況' },
+  { to: '/news', label: '最新情報' },
 ];
 
 export default function App() {

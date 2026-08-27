@@ -8,6 +8,7 @@ import AmmoPage from './pages/AmmoPage';
 import TasksPage from './pages/TasksPage';
 import BossesPage from './pages/BossesPage';
 import StatusPage from './pages/StatusPage';
+import NewsPage from './pages/NewsPage';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="tasks" element={<TasksPage />} />
             <Route path="bosses" element={<BossesPage />} />
             <Route path="status" element={<StatusPage />} />
+            <Route path="news" element={<NewsPage />} />
           </Route>
         </Routes>
       </HashRouter>
