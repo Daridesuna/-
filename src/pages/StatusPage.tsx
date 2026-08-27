@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchGraphQL, STATUS_QUERY, type ServerStatus } from '../api/tarkov';
+import { loadServerStatus } from '../api/tarkov';
 import QueryState from '../components/QueryState';
 
 const STATUS_LABELS: Record<number, { label: string; className: string }> = {
@@ -16,11 +16,11 @@ function statusInfo(code: number) {
 export default function StatusPage() {
   const query = useQuery({
     queryKey: ['status'],
-    queryFn: () => fetchGraphQL<{ status: ServerStatus }>(STATUS_QUERY),
+    queryFn: loadServerStatus,
     refetchInterval: 60_000,
   });
 
-  const status = query.data?.status;
+  const status = query.data;
 
   return (
     <section>
@@ -63,7 +63,7 @@ export default function StatusPage() {
                     {m.solveTime &&
                       ` (解決: ${new Date(m.solveTime).toLocaleString('ja-JP')})`}
                   </div>
-                  <p>{m.content}</p>
+                  <p>{m.content || m.statusCode || '(詳細なし)'}</p>
                 </li>
               ))}
             </ul>
