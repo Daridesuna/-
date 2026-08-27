@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchGraphQL, MAPS_QUERY, type MapInfo } from '../api/tarkov';
+import { loadMaps } from '../api/tarkov';
 import QueryState from '../components/QueryState';
 
 function chancePercent(value: number): string {
@@ -7,12 +7,9 @@ function chancePercent(value: number): string {
 }
 
 export default function BossesPage() {
-  const query = useQuery({
-    queryKey: ['maps'],
-    queryFn: () => fetchGraphQL<{ maps: MapInfo[] }>(MAPS_QUERY),
-  });
+  const query = useQuery({ queryKey: ['maps'], queryFn: loadMaps });
 
-  const maps = (query.data?.maps ?? []).filter((m) => m.bosses.length > 0);
+  const maps = (query.data ?? []).filter((m) => m.bosses.length > 0);
 
   return (
     <section>

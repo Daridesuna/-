@@ -1,6 +1,8 @@
 # Tarkov 情報局
 
-Escape from Tarkov の攻略情報をまとめて確認できる Web アプリです。データはすべて [tarkov.dev](https://tarkov.dev) の無料 GraphQL API からブラウザ上で直接取得します(API キー不要)。
+Escape from Tarkov の攻略情報をまとめて確認できる Web アプリです。データは [tarkov.dev](https://tarkov.dev) プロジェクトの静的 JSON ミラー(json.tarkov.dev)からブラウザ上で直接取得します(API キー不要・CORS 対応)。
+
+> **Note:** 当初は tarkov.dev の GraphQL API(api.tarkov.dev)を使っていましたが、同 API のバックエンドが長期間 422 エラーを返し続けており、tarkov.dev 公式サイト自身も静的 JSON API(json.tarkov.dev)へ移行済みのため、本アプリも JSON API に切り替えています。エンドポイント一覧は <https://json.tarkov.dev/endpoints> を参照。
 
 ## 機能
 
@@ -15,7 +17,7 @@ Escape from Tarkov の攻略情報をまとめて確認できる Web アプリ�
 - [Vite](https://vite.dev) + [React](https://react.dev) + TypeScript
 - [TanStack Query](https://tanstack.com/query) — データ取得・キャッシュ
 - [React Router](https://reactrouter.com)(HashRouter — 静的ホスティングでもそのまま動作)
-- [tarkov.dev GraphQL API](https://tarkov.dev/api/) — ゲームデータ(日本語ローカライズ対応)
+- [tarkov.dev](https://tarkov.dev/api/) の JSON データミラー(json.tarkov.dev)— ゲームデータ本体+日本語翻訳マップを取得してクライアント側でマージ
 
 ## 開発
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchGraphQL, TASKS_QUERY, type Task } from '../api/tarkov';
+import { loadTasks } from '../api/tarkov';
 import QueryState from '../components/QueryState';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 
@@ -10,12 +10,9 @@ export default function TasksPage() {
   const [input, setInput] = useState('');
   const search = useDebouncedValue(input.trim().toLowerCase(), 300);
 
-  const query = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => fetchGraphQL<{ tasks: Task[] }>(TASKS_QUERY),
-  });
+  const query = useQuery({ queryKey: ['tasks'], queryFn: loadTasks });
 
-  const tasks = useMemo(() => query.data?.tasks ?? [], [query.data]);
+  const tasks = useMemo(() => query.data ?? [], [query.data]);
 
   const traders = useMemo(
     () => [...new Set(tasks.map((t) => t.trader.name))],

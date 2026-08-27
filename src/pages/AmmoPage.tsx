@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AMMO_QUERY, fetchGraphQL, type Ammo } from '../api/tarkov';
+import { loadAmmo, type Ammo } from '../api/tarkov';
 import QueryState from '../components/QueryState';
 
 /** 貫通力からアーマークラス相当 (0〜6) を算出。tarkov.dev の弾薬チャートと同じ基準。 */
@@ -19,15 +19,9 @@ export default function AmmoPage() {
   const [caliber, setCaliber] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('penetrationPower');
 
-  const query = useQuery({
-    queryKey: ['ammo'],
-    queryFn: () => fetchGraphQL<{ ammo: Ammo[] }>(AMMO_QUERY),
-  });
+  const query = useQuery({ queryKey: ['ammo'], queryFn: loadAmmo });
 
-  const allAmmo = useMemo(
-    () => (query.data?.ammo ?? []).filter((a) => a.item != null),
-    [query.data],
-  );
+  const allAmmo = useMemo<Ammo[]>(() => query.data ?? [], [query.data]);
 
   const calibers = useMemo(() => {
     const set = new Map<string, string>();
