@@ -472,7 +472,39 @@ tbody tr:hover {
 .badge.cat-task { color: #e9c46a; border-color: #8f7a4d; }
 .badge.cat-boss { color: #e08a8a; border-color: #7a3b39; }
 .badge.cat-balance { color: #9dbb4a; border-color: #5c6e2e; }
+.badge.cat-event { color: #e0b184; border-color: #8a6238; }
 .badge.cat-future { color: #c8a2e0; border-color: #6d4f80; }
+.badge.rel-confirmed {
+  color: #14140f;
+  background: var(--up);
+  border-color: var(--up);
+  font-weight: 700;
+}
+.badge.rel-community {
+  color: #14140f;
+  background: #7ec8e3;
+  border-color: #7ec8e3;
+  font-weight: 700;
+}
+.badge.rel-rumor {
+  color: #14140f;
+  background: #e0a14f;
+  border-color: #e0a14f;
+  font-weight: 700;
+}
+.filter-bar.column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.chip-label {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-right: 0.2rem;
+}
+.page-desc .badge {
+  margin: 0 0.15rem;
+}
 
 /* ---------- states ---------- */
 .state-box {
