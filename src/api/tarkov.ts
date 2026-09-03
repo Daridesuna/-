@@ -6,7 +6,18 @@
 // 翻訳マップ(items_ja 等)を重ねて日本語化する(公式サイトと同じ方式)。
 // エンドポイント一覧: https://json.tarkov.dev/endpoints
 const JSON_BASE = 'https://json.tarkov.dev';
-const GAME_MODE = 'regular';
+
+/** json.tarkov.dev が提供するゲームモード */
+export type GameMode = 'regular' | 'pvp-season' | 'pve';
+
+export const GAME_MODE_LABELS: Record<GameMode, string> = {
+  regular: '通常 PvP',
+  'pvp-season': 'シーズン (KORD BREACH)',
+  pve: 'PvE',
+};
+
+// アイテム価格・タスク等の既定モード(ボス出現率はページ側で切替可能)
+const GAME_MODE: GameMode = 'regular';
 
 // 同じファイルを複数ページで使うため、エンドポイント単位でフェッチを共有する
 const fetchCache = new Map<string, Promise<unknown>>();
@@ -36,10 +47,13 @@ function fetchJson<T>(path: string): Promise<T> {
 type Dict = Record<string, string>;
 
 /** 日本語訳(無ければ英語訳)のマージ済み辞書を取得 */
-async function loadDict(endpoint: string): Promise<Dict> {
+async function loadDict(
+  endpoint: string,
+  gameMode: GameMode = GAME_MODE,
+): Promise<Dict> {
   const [en, ja] = await Promise.all([
-    fetchJson<Dict>(`${GAME_MODE}/${endpoint}_en`),
-    fetchJson<Dict>(`${GAME_MODE}/${endpoint}_ja`),
+    fetchJson<Dict>(`${gameMode}/${endpoint}_en`),
+    fetchJson<Dict>(`${gameMode}/${endpoint}_ja`),
   ]);
   return { ...en, ...ja };
 }
@@ -236,32 +250,65 @@ export interface MapInfo {
   bosses: BossSpawn[];
 }
 
-async function loadMapParts() {
-  return Promise.all([fetchJson<MapsFile>(mode('maps')), loadDict('maps')]);
+async function loadMapParts(gameMode: GameMode = GAME_MODE) {
+  return Promise.all([
+    fetchJson<MapsFile>(`${gameMode}/maps`),
+    loadDict('maps', gameMode),
+  ]);
 }
 
-export async function loadMaps(): Promise<MapInfo[]> {
-  const [file, dict] = await loadMapParts();
+export async function loadMaps(
+  gameMode: GameMode = GAME_MODE,
+): Promise<MapInfo[]> {
+  const [file, dict] = await loadMapParts(gameMode);
   return Object.values(file.maps).map((raw) => ({
     id: raw.id,
     name: tr(dict, `${raw.id} Name`, raw.normalizedName),
     players: raw.players,
     raidDuration: raw.raidDuration,
-    bosses: (raw.bosses ?? []).map((spawn) => {
-      const mob = file.mobs[spawn.mob];
-      return {
-        boss: {
-          name: tr(dict, mob?.name ?? spawn.mob, spawn.mob),
-          imagePortraitLink: mob?.imagePortraitLink ?? null,
-        },
-        spawnChance: spawn.spawnChance,
-        spawnLocations: (spawn.spawnLocations ?? []).map((loc) => ({
-          name: tr(dict, loc.name, loc.name),
-          chance: loc.chance,
-        })),
-      };
-    }),
+    bosses: dedupeBosses(raw.bosses ?? [], file.mobs, dict),
   }));
+}
+
+/**
+ * 同一ボスの出現枠(スポーンスロット)ごとの重複エントリを1件に統合する。
+ * 出現率は最大値、出現場所は名前で重複排除して結合する。
+ */
+function dedupeBosses(
+  spawns: RawMap['bosses'],
+  mobs: MapsFile['mobs'],
+  dict: Dict,
+): BossSpawn[] {
+  const merged = new Map<
+    string,
+    { spawnChance: number; locations: Map<string, number> }
+  >();
+  for (const spawn of spawns) {
+    let entry = merged.get(spawn.mob);
+    if (!entry) {
+      entry = { spawnChance: 0, locations: new Map() };
+      merged.set(spawn.mob, entry);
+    }
+    entry.spawnChance = Math.max(entry.spawnChance, spawn.spawnChance);
+    for (const loc of spawn.spawnLocations ?? []) {
+      const name = tr(dict, loc.name, loc.name);
+      if (!entry.locations.has(name)) entry.locations.set(name, loc.chance);
+    }
+  }
+  return [...merged.entries()].map(([mobKey, entry]) => {
+    const mob = mobs[mobKey];
+    return {
+      boss: {
+        name: tr(dict, mob?.name ?? mobKey, mobKey),
+        imagePortraitLink: mob?.imagePortraitLink ?? null,
+      },
+      spawnChance: entry.spawnChance,
+      spawnLocations: [...entry.locations.entries()].map(([name, chance]) => ({
+        name,
+        chance,
+      })),
+    };
+  });
 }
 
 // ---------- tasks ----------
