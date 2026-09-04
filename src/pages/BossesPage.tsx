@@ -1,13 +1,25 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { loadMaps } from '../api/tarkov';
+import {
+  GAME_MODE_LABELS,
+  loadMaps,
+  type GameMode,
+} from '../api/tarkov';
 import QueryState from '../components/QueryState';
+
+const GAME_MODES: GameMode[] = ['regular', 'pvp-season', 'pve'];
 
 function chancePercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
 export default function BossesPage() {
-  const query = useQuery({ queryKey: ['maps'], queryFn: loadMaps });
+  const [gameMode, setGameMode] = useState<GameMode>('regular');
+
+  const query = useQuery({
+    queryKey: ['maps', gameMode],
+    queryFn: () => loadMaps(gameMode),
+  });
 
   const maps = (query.data ?? []).filter((m) => m.bosses.length > 0);
 
@@ -15,8 +27,25 @@ export default function BossesPage() {
     <section>
       <h1>マップ別ボス出現率</h1>
       <p className="page-desc">
-        各マップのボス・スカフ集団の出現率と主な出現場所です(現在のワイプの設定値)。
+        各マップのボス・敵集団の出現率と主な出現場所です(ゲーム内設定値のライブデータ)。
+        シーズン限定の出現(Shoreline・Streets・Ground Zero の Black Division
+        など)は「シーズン」モードに切り替えると表示されます。
       </p>
+      <div className="filter-bar">
+        <div className="chip-row">
+          <span className="chip-label">ゲームモード:</span>
+          {GAME_MODES.map((m) => (
+            <button
+              key={m}
+              type="button"
+              className={gameMode === m ? 'chip active' : 'chip'}
+              onClick={() => setGameMode(m)}
+            >
+              {GAME_MODE_LABELS[m]}
+            </button>
+          ))}
+        </div>
+      </div>
       <QueryState
         isLoading={query.isPending}
         error={query.error}
